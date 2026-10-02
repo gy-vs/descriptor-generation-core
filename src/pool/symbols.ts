@@ -64,6 +64,20 @@ export class SymbolTable{
     this.symbols.delete(fullName);
   }
 
+  /** All symbols, in registration order. */
+  [Symbol.iterator]():IterableIterator<Symbol>{
+    return this.symbols.values();
+  }
+
+  /** Deep copy: every Symbol object is duplicated so the clone's link
+   *  targets can be rebound without touching the source table. */
+  clone():SymbolTable{
+    const copy=new SymbolTable();
+    for(const symbol of this.symbols.values())
+      copy.symbols.set(symbol.fullName,{...symbol});
+    return copy;
+  }
+
   /**
    * Resolve a type name against a scope, following protobuf's C++-style
    * scoping rules.

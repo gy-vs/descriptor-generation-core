@@ -81,3 +81,29 @@ export class ExtensionRangeError extends DescriptorError{
 export class FrozenDescriptorError extends DescriptorError{
   constructor(){super('descriptor has been published and is immutable')}
 }
+
+/** One file in a candidate revision that prevented the new generation
+ *  from being published. `error` is the underlying validation or link
+ *  error and `file` is the candidate (or rebuilt dependent) file that
+ *  must be fixed. */
+export interface RevisionFailure{
+  readonly file:string;
+  readonly error:DescriptorError;
+}
+
+/** A candidate revision failed validation as a complete new generation.
+ *  The live pool is untouched; every offending file is listed. */
+export class RevisionValidationError extends DescriptorError{
+  constructor(readonly failures:readonly RevisionFailure[]){
+    super(
+      `revision cannot be published (${failures.length} failing file${failures.length===1?'':'s'}):\n`+
+      failures.map(f=>`  - "${f.file}": ${f.error.message}`).join('\n'),
+    );
+  }
+}
+
+/** A prepared revision was built against an older generation (the pool
+ *  advanced afterwards). It must be prepared again before committing. */
+export class RevisionStaleError extends DescriptorError{
+  constructor(){super('revision was prepared against an older generation; prepare it again')}
+}
