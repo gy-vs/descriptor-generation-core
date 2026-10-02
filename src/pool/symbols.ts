@@ -64,6 +64,20 @@ export class SymbolTable{
     this.symbols.delete(fullName);
   }
 
+  /** Shallow copy: symbols are shared (including their resolved targets),
+   *  but additions/deletions on the copy never affect the original. Used
+   *  when a candidate generation is staged from a live one. */
+  clone():SymbolTable{
+    const copy=new SymbolTable();
+    for(const[name,symbol]of this.symbols)copy.symbols.set(name,symbol);
+    return copy;
+  }
+
+  /** All registered symbols (declaration order not guaranteed). */
+  all():Symbol[]{
+    return[...this.symbols.values()];
+  }
+
   /**
    * Resolve a type name against a scope, following protobuf's C++-style
    * scoping rules.

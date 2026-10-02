@@ -81,3 +81,47 @@ export class ExtensionRangeError extends DescriptorError{
 export class FrozenDescriptorError extends DescriptorError{
   constructor(){super('descriptor has been published and is immutable')}
 }
+
+/** One file of a proposed revision prevents the new generation from
+ *  publishing. `cause` is the concrete declaration/link error that was
+ *  produced while building the candidate generation; `revisionFile` is the
+ *  submitted file that is responsible for it (the failed file itself when
+ *  it is part of the revision, otherwise the closest submitted ancestor in
+ *  the import graph). */
+export class RevisionFileError extends DescriptorError{
+  constructor(
+    /** The submitted file responsible for the failure. */
+    readonly revisionFile:string,
+    /** The file on which the concrete error was detected (may differ
+     *  from `revisionFile` for an unrevised dependent that stopped
+     *  resolving against the revised definitions). */
+    readonly failedFile:string,
+    readonly cause:DescriptorError,
+  ){
+    super(`revision file "${revisionFile}" prevents publication`
+      +(failedFile===revisionFile?'':` (failure detected in "${failedFile}")`)
+      +`: ${cause.message}`);
+  }
+}
+
+/** A revision could not be prepared: none of its files have been
+ *  published and the previous generation remains fully in service. */
+export class RevisionRejectedError extends DescriptorError{
+  constructor(readonly errors:RevisionFileError[]){
+    super(
+      errors.length===0
+        ?'revision rejected'
+        :`revision rejected (${errors.length} file${errors.length===1?'':'s'}): `
+          +errors.map(e=>`"${e.revisionFile}": ${e.cause.message}`).join('; '),
+    );
+  }
+}
+
+/** A prepared revision is being committed against a generation that is no
+ *  longer live: the pool accepted other registrations after the revision
+ *  was prepared. Nothing was published by the failed commit. */
+export class RevisionStaleError extends DescriptorError{
+  constructor(){
+    super('the generation this revision was prepared against is no longer current; prepare a new revision');
+  }
+}

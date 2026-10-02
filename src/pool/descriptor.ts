@@ -1,5 +1,5 @@
 import{FrozenDescriptorError}from'./errors.js';
-import type{EnumValueNode,ExtensionRange,FieldNode,FileNode,Label,MethodNode}from'./ast.js';
+import type{EnumValueNode,ExtensionRange,FieldNode,Label,MethodNode}from'./ast.js';
 
 /**
  * Immutable descriptors, produced by the pool's link phase.
